@@ -14,11 +14,6 @@ name: Build and Deploy to GKE
 
 on:
   workflow_dispatch:
-    inputs:
-      flutter_version:
-        description: 'ENV'
-        required: true
-        default: 'GCP'
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
