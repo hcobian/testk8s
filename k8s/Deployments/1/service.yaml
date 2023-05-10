@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: netapi-service
+  namespace: testk8s
+spec:
+  type: LoadBalancer
+  selector:
+    app: netapi
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 80

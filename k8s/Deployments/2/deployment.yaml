@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: netapi
+  name: netapi
+  namespace: testk8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: netapi
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: netapi
+    spec:
+      containers:
+      - image: hcobian/netapi:1.0.0
+        name: netapi
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        resources: {}
+        env:
+        - name: ENV_VAR_1
+          valueFrom:
+            configMapKeyRef:
+              name: configmap-api
+              key: ENV_VAR_1
+status: {}
