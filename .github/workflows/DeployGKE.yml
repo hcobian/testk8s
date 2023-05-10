@@ -17,6 +17,7 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  project_id: ${{ secrets.GKE_PROJECT }}
   GCP_SA: ${{ secrets.GCP_SA }}
   GAR_LOCATION: us-central1 # TODO: update region of the Artifact Registry
   GKE_CLUSTER: autopilot-cluster-1    # TODO: update to cluster name
