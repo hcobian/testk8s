@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: netapi2
+  name: netapi2
+  namespace: testk8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: netapi2
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: netapi2
+    spec:
+      containers:
+      - image: hcobian/netapi:2.0.0
+        name: netapi2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        resources: {}
+        env:
+        - name: ENV_VAR_1
+          value: "Hello"
+        - name: ENV_VAR_2
+          value: "world!"
+status: {}

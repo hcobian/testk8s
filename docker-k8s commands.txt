@@ -1,0 +1,176 @@
+kubectl config set-context --current --namespace=
+
+[powershell]
+Set-Alias -Name k -Value kubectl
+
+[linux]
+alias k='kubectl'
+alias kc='k config view --minify | grep name'
+alias kdp='kubectl describe pod'
+alias c='clear'
+alias kd='kubectl describe pod'
+alias ke='kubectl explain'
+alias kf='kubectl create -f'
+alias kg='kubectl get pods --show-labels'
+alias kr='kubectl replace -f'
+alias ks='kubectl get namespaces'
+alias l='ls -lrt'
+alias kga='k get pod --all-namespaces'
+alias kgaa='kubectl get all --show-labels'
+
+
+[Docker]
+docker build . -t hcobian/test:latest
+
+docker push hcobian/test:latest
+
+docker run --name net6api -d -p 8085:80 hcobian/test:latest
+
+docker rm --force net6api
+
+docker run --name docker-postgres -e POSTGRES_PASSWORD=hcobian -d -p 5432:5432 postgres
+
+docker rm --force postgres
+
+docker save -o net6api.targz hcobian/test:latest
+
+[kubernetes]
+https://jamesdefabia.github.io/docs/reference/
+
+
+=== kubectl apply ===
+https://jamesdefabia.github.io/docs/user-guide/kubectl/kubectl_apply/
+=================
+
+kubectl apply -f <name>.yaml
+
+=== kubctl kubctl scale ===
+https://jamesdefabia.github.io/docs/user-guide/kubectl/kubectl_scale/
+=================
+
+kubectl scale deployment net6api-dev --replicas=10 -n testk8s
+
+kubectl autoscale deployment/net6api-dev -n testk8s --min=10 --max=15 --cpu-percent=80
+
+=== kubectl exec === [Single pod]
+https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#exec
+=================
+
+kubectl exec -n testk8s -it net6api-dev -- sh
+exit
+
+=== kubectl logs===
+https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#logs
+=================
+
+kubectl logs net6api-dev -n testk8s
+
+=== kubectl ===
+https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#port-forward
+=================
+
+kubectl port-forward -n testk8s pod/net6api-dev 8888:80
+
+=== Delete resources ===
+https://jamesdefabia.github.io/docs/user-guide/kubectl/kubectl_delete/
+=================
+kubectl delete pod net6api-dev -n testk8s
+kubectl delete namespace testk8s -n testk8s
+kubectl delete ns testk8s -n testk8s
+kubectl delete cm configmap-dev -n testk8s
+kubectl delete secret secrets-dev -n testk8s
+
+=== namespace ===
+https://jamesdefabia.github.io/docs/user-guide/kubectl/kubectl_create_namespace/
+=================
+
+kubectl create namespace testk8s --dry-run=client -o yaml > namespace.yaml
+kubectl create ns testk8s
+
+==== PODS ===
+=================
+
+kubectl run net6api-dev --image=hcobian/test:latest -n testk8s --dry-run=client -o yaml > pod.yaml
+#replace
+kubectl get pod net6api-dev -n testk8s -o yaml | kubectl replace --force -f -
+#
+kubectl get pods --watch
+
+=== ConfigMap ===
+https://jamesdefabia.github.io/docs/user-guide/kubectl/kubectl_create_configmap/
+=================
+kubectl create configmap configmap --from-literal=ENV_VAR_1=hello --from-literal=ENV_VAR_2=world -n testk8s --dry-run=client -o yaml > configMap.yaml
+kubectl create cm configmap --from-file=values.txt -n testk8s --dry-run=client -o yaml > configMap.yaml
+
+=== deployment ===
+https://kubernetes.io/docs/tasks/run-application/run-stateless-application-deployment/
+#no secrets or configMap
+kubectl create deployment net6api-dev --image=hcobian/test:latest -n testk8s --dry-run=client -o yaml > deployment2.yaml
+
+
+=== secrets ===
+https://jamesdefabia.github.io/docs/user-guide/kubectl/kubectl_create_secret_generic/
+=================
+kubectl create secret generic pubsub-key --from-file=key.json=sa_key.json -n testk8s --dry-run=client -o yaml > secrets1.yaml
+kubectl create secret generic secrets --from-literal=ENV_SECRET_1=Hello --from-literal=ENV_SECRET_2=World --from-literal=ConnectionStrings__postgres=localhost:5432 -n testk8s --dry-run=client -o yaml > secrets2.yaml
+
+=== service, kubectl expose ===
+https://jamesdefabia.github.io/docs/user-guide/kubectl/kubectl_expose/
+=================
+#pods
+kubectl expose pod net6api-dev --port=8090 --target-port=80 --name=pod-service --type=LoadBalancer -n testk8s
+#deployments
+kubectl expose deployment net6api-dev --port=8080 --target-port=80 --name=net6api-service-dev --type=LoadBalancer -n testk8s
+kubectl expose service net6api-service-dev --port=8081 --target-port=443 --name=net6api-service-dev-https -n testk8s
+
+==== kubectl describe ====
+https://jamesdefabia.github.io/docs/user-guide/kubectl/kubectl_describe/
+=================
+
+kubectl describe pod -l run=net6api-dev
+
+=== kubectl explain ===
+
+=================
+#example
+kubectl explain pods.spec.restartPolicy
+
+
+=== kubectl rollout ===
+=================
+
+#
+kubectl rollout status deployment/net6api-dev -n testk8s
+
+#
+kubectl rollout history deployment/net6api-dev -n testk8s
+
+#update image
+kubectl set image deployments/net6api-dev test=hcobian/test:v2.0 -n testk8s
+
+#undo tp previous version
+kubectl rollout undo deployment/net6api-dev -n testk8s
+
+#undo to an specific version
+kubectl rollout undo deployment/net6api-dev -n testk8s --to-revision=2
+
+#
+kubectl set resources deployment/net6api-dev -c=test --limits=cpu=200m,memory=512Mi
+
+#
+kubectl patch deployment.v1.apps/nginx-deployment -p '{"spec":{"progressDeadlineSeconds":600}}'
+
+# add label to resourse
+kubectl label pods/net6api-dev-6ddb6957bd-7st84 env=dev -n testk8s
+
+# remove label to resource
+kubectl label pods/net6api-dev-6ddb6957bd-7st84 env- -n testk8s
+
+# update label
+kubectl label --overwrite pods/net6api-dev-6ddb6957bd-7st84 env=stage -n testk8s
+
+#list contexts
+kubectl config get-contexts
+
+#Change context
+kubectl config use-context docker-desktop

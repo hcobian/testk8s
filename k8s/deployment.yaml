@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: netapi
+  name: netapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: netapi
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: netapi
+    spec:
+      containers:
+      - image: hcobian/netapi:1.0.0
+        name: netapi
+        resources: {}
+status: {}

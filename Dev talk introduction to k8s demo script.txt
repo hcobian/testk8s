@@ -1,0 +1,174 @@
+[Demo]
+
+- show aplication and dockerfile
+
+[create image and publish to repo]
+open PS vscode
+
+cd NetApiK8s
+
+dotnet run
+
+docker build . -t hcobian/netapi:1.0.0
+
+docker push hcobian/netapi:1.0.0
+
+docker run --name netapi -d -p 8085:80 hcobian/netapi:1.0.0
+
+http://localhost:8085/WeatherForecast
+
+docker rm --force netapi
+
+[Pod creation, command line + yaml]
+
+cd ../k8s
+
+kubectl run netapi --image=hcobian/netapi:1.0.0
+
+kubectl get pods
+
+kubectl delete pod netapi
+
+[Explanation, Imperative & declarative]
+
+kubectl run netapi --image=hcobian/netapi:1.0.0 --dry-run=client
+
+kubectl run netapi --image=hcobian/netapi:1.0.0 --dry-run=client -o yaml
+
+kubectl run netapi --image=hcobian/netapi:1.0.0 --dry-run=client -o yaml > pod.yaml
+
+kubectl apply -f pod.yaml
+
+Set-Alias -Name k -Value kubectl
+
+k get pods
+
+[Expose pod]
+
+kubectl expose pod netapi --port=8090 --target-port=80 --name=pod-service --type=LoadBalancer
+
+k get services
+
+kubectl expose pod netapi --port=8090 --target-port=80 --name=pod-service --type=LoadBalancer --dry-run=client -o yaml > pod-service.yaml
+
+k delete service pod-service
+
+kubectl apply -f pod-service.yaml
+
+http://localhost:8090/WeatherForecast
+
+k delete service pod-service
+
+- if the pod die wont be replaced
+
+k delete pod netapi
+
+[Deployment + expose]
+
+kubectl create deployment netapi --image=hcobian/netapi:1.0.0
+
+k get pods,deployments -o wide  
+
+kubectl create deployment netapi --image=hcobian/netapi:1.0.0 --dry-run=client -o yaml > deployment.yaml
+
+kubectl rollout status deployment/netapi
+
+kubectl expose deployment netapi --port=8080 --target-port=80 --name=netapi-service --type=LoadBalancer
+
+kubectl expose deployment netapi --port=8080 --target-port=80 --name=netapi-service --type=LoadBalancer --dry-run=client -o yaml > netapi-service.yaml
+
+ k delete deployment netapi
+
+http://localhost:8080/WeatherForecast
+
+- if the pod die will be replaced, open split PS
+
+Set-Alias -Name k -Value kubectl
+k get pods -o wide --watch
+
+- on previos PS, kill pod
+
+k delete pod <name>
+
+- open split PS, stop watch, ctrl + c
+
+k get pods -o wide
+
+[scale deployment]
+
+- on split PS
+k get pods -o wide --watch
+
+kubectl scale deployment netapi --replicas=10
+
+- kill some pods
+
+[Deployment update image, force error]
+
+- on split PS
+k get pods -o wide --watch
+
+kubectl rollout history deployment/netapi
+
+kubectl set image deployments/netapi netapi=hcobian/netapi:1.0.1
+
+kubectl rollout status deployment/netapi
+
+kubectl logs <pod-name>
+
+kubectl describe pod <name>
+
+kubectl rollout undo deployment/netapi
+
+//kubectl rollout undo deployment/netapi --to-revision=2
+
+[secrets and config map and namespace]
+
+1 - deployment with fixed env vars in depoloyment file
+
+k apply -f namespace.yaml
+k apply -f deployment.yaml
+k apply -f service.yaml
+
+kubectl delete ns testk8s
+
+2 - Deployment with configMap
+
+k apply -f namespace.yaml
+k apply -f configMap.yaml
+k apply -f deployment.yaml
+k apply -f service.yaml
+
+kubectl delete ns testk8s
+
+3- deployment with configmap & secrets
+
+k apply -f namespace.yaml
+k apply -f configMap.yaml
+k apply -f secrets.yaml
+k apply -f deployment.yaml
+k apply -f service.yaml
+
+kubectl delete ns testk8s
+
+4- Untested, Green/blue deployment, Missing steps here XD
+
+k apply -f namespace.yaml
+k apply -f deployment.yaml
+k apply -f service.yaml
+k apply -f deployment-2.yaml
+k apply -f service-2.yaml
+
+
+kubectl delete ns testk8s
+
+5- canary deployment 50/50 traffic
+
+k apply -f namespace.yaml
+k apply -f deployment.yaml
+k apply -f deployment-2.yaml
+k apply -f service.yaml
+
+run this on Poweshell, we want to see 1.0.0 or 2.0.0 in the response
+
+Invoke-WebRequest -Headers @{"Cache-Control"="no-cache"} -Method GET -Uri http://localhost:8080/version
